@@ -5,6 +5,6 @@
   "exports": "./src/index.mjs",
   "files": ["src", "README.md", "LICENSE"],
   "engines": { "node": ">=22.14" },
-  "dependencies": { "quais": "1.0.0-alpha.54" },
+  "dependencies": { "quais": "1.0.0-alpha.58" },
   "license": "MIT"
 }

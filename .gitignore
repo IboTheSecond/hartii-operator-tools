@@ -1,0 +1,10 @@
+node_modules/
+artifacts/
+.hartii-ops/
+*.approval.json
+*.signed
+.env*
+.dev.vars
+.npmrc
+*.pem
+*.key

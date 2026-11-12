@@ -1,0 +1,22 @@
+{
+  "name": "@hartii/quai-watch",
+  "version": "0.1.0-beta.1",
+  "type": "module",
+  "bin": {
+    "quai-watch": "./bin/cli.mjs"
+  },
+  "exports": "./src/index.mjs",
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.14"
+  },
+  "dependencies": {
+    "@hartii/ops-core": "0.1.0-beta.1"
+  },
+  "license": "MIT"
+}

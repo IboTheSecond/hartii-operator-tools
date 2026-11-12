@@ -1,0 +1,15 @@
+{
+  "name": "hartii-operator-tools",
+  "version": "0.1.0-beta.1",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "engines": { "node": ">=22.14" },
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "check": "node scripts/check.mjs",
+    "pack:verify": "node scripts/pack.mjs",
+    "pilot": "node scripts/pilot.mjs"
+  },
+  "license": "MIT"
+}

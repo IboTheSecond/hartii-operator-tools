@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Hartii Operator Tools</title>
+<meta name="description" content="Four open source command-line tools for teams building on Quai Network: review a transaction before it is sent, verify a release, watch an indexer, replay a failure. Beta, unaudited, MIT licence.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23183cf0'/%3E%3Cpath d='M9 10l7 6-7 6' stroke='white' stroke-width='3' fill='none'/%3E%3Cpath d='M18 23h6' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+<script>
+try{var t=localStorage.getItem('hartii-ops-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}
+</script>
+<style>
+:root{--paper:#f8f7f3;--surface:#fffefa;--ink:#20221f;--muted:#61655f;--line:#d9dbd2;--accent:#183cf0;--btn:#183cf0;--soft:#eceffd;--ok:#246444;--warn:#815b13;--term:#171c22;--termtext:#dae0e8;--mono:Consolas,'SFMono-Regular',monospace;--serif:Georgia,'Times New Roman',serif;--sans:Arial,Helvetica,sans-serif;--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s6:24px;--s8:32px;--s12:48px;--s16:64px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#171b20;--surface:#1e242b;--ink:#f0efe8;--muted:#afb5bd;--line:#3a424c;--accent:#9aafff;--btn:#304eea;--soft:#252e47;--ok:#95d1ad;--warn:#ddbd78}}
+:root[data-theme="dark"]{--paper:#171b20;--surface:#1e242b;--ink:#f0efe8;--muted:#afb5bd;--line:#3a424c;--accent:#9aafff;--btn:#304eea;--soft:#252e47;--ok:#95d1ad;--warn:#ddbd78}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:16px}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 var(--sans);font-variant-numeric:tabular-nums}
+button{font:inherit;cursor:pointer;color:inherit;border:1px solid var(--line);background:transparent;border-radius:4px;min-height:44px;padding:9px 14px;touch-action:manipulation}
+button:hover{border-color:var(--accent)}
+button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+a{color:var(--accent)}
+h1,h2,h3,p,ul,ol,pre{margin:0}h1,h2,h3{font-weight:normal}
+h1{font:clamp(44px,5vw,76px)/.98 var(--serif);letter-spacing:-3px}
+h2{font:32px/1.12 var(--serif);letter-spacing:-.7px}
+h3{font:22px/1.2 var(--serif)}
+small{font-size:12px}
+.eyebrow{text-transform:uppercase;letter-spacing:1.6px;font:11px/1.5 var(--mono);color:var(--muted)}
+.muted{color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.skip{position:absolute;left:16px;top:-80px;background:var(--ink);color:var(--surface);padding:10px 14px;z-index:20}.skip:focus{top:8px}
+
+.top{display:flex;align-items:center;gap:28px;padding:16px 36px;border-bottom:1px solid var(--line);background:var(--surface)}
+.wordmark{font:bold 31px/1 var(--serif);letter-spacing:-1.5px;color:var(--ink);text-decoration:none;white-space:nowrap}
+.topsub{border-left:1px solid var(--line);padding-left:24px}
+.topnav{display:flex;gap:20px;font-size:13px;margin-left:8px}.topnav a{color:var(--ink);text-decoration:none;border-bottom:1px solid transparent}.topnav a:hover{border-bottom-color:var(--accent)}
+.topright{margin-left:auto;display:flex;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 18px;border:1px solid var(--line);border-radius:4px;color:var(--ink);text-decoration:none;font-size:14px;touch-action:manipulation}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--btn);border-color:var(--btn);color:#fff}
+.btn.primary:hover{filter:brightness(1.12)}
+
+.shell{max-width:1680px;margin:auto;padding:0 36px 48px}
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;padding:56px 0 44px;border-bottom:1px solid var(--line)}
+.hero .eyebrow{margin-bottom:16px}.hero em{font-weight:normal;color:var(--accent)}
+.intro{max-width:480px;align-self:end;padding-bottom:4px}
+.intro p{font-size:17px;line-height:1.6}
+.intro .explain{margin-top:16px;font:12px/1.6 var(--mono);color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+
+.strip{display:flex;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid var(--line);font-size:13px}
+.strip strong{font-weight:600}.strip span{margin-left:auto;color:var(--muted);font:11px var(--mono)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-right:7px}
+
+.section{padding-top:48px}
+.sectionhead{display:flex;align-items:baseline;gap:16px;margin-bottom:24px}.sectionhead span{margin-left:auto}
+.workspace{display:grid;grid-template-columns:224px minmax(0,1fr);gap:32px}
+.rail{border-right:1px solid var(--line);padding-right:24px}.rail .eyebrow{margin-bottom:16px}
+.tool{width:100%;display:grid;grid-template-columns:29px 1fr;text-align:left;gap:10px;padding:16px 8px;border:0;border-bottom:1px solid var(--line);border-radius:0;min-height:89px}
+.tool[aria-selected="true"]{color:var(--accent);background:var(--soft);box-shadow:inset 3px 0 var(--accent)}
+.tool .num{font:12px/1.8 var(--mono)}.tool strong{font-size:15px;display:block;font-weight:600}.tool small{display:block;font:11px/1.7 var(--mono);color:var(--muted)}
+.railnote{margin-top:24px;font-size:12px;color:var(--muted);max-width:175px}
+.productheading{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;margin-bottom:20px}
+.productheading p{color:var(--muted);margin-top:8px;max-width:640px;font-size:14px}
+.tag{font:10px var(--mono);letter-spacing:.7px;padding:6px 8px;white-space:nowrap;border:1px solid var(--accent);color:var(--accent);margin-top:4px}
+.stage{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(230px,1fr);gap:24px}
+.terminal{display:flex;flex-direction:column;background:var(--term);color:var(--termtext);border-radius:7px;overflow:hidden;min-width:0;box-shadow:0 8px 20px #1a20200d}
+.termbar{display:flex;align-items:center;padding:12px 16px;background:#202630;border-bottom:1px solid #333c49;gap:8px;font:10px var(--mono);color:#acb6c6}
+.dots{display:flex;gap:5px;margin-right:8px}.dots i{width:7px;height:7px;background:#647184;border-radius:50%}
+.termbadge{margin-left:auto;color:#d8d3ad}
+.termtext{flex:1;font:12px/1.9 var(--mono);padding:20px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:275px}
+.termtext .prompt{color:#a9baff}.termtext .success{color:#9cdaad}.termtext .warning{color:#edcf92}.termtext .dim{color:#97a2b3}
+.termfooter{margin-top:auto;padding:12px 16px;border-top:1px solid #303845;display:flex;gap:12px;align-items:center}
+.termfooter button{color:#e5eafa;border-color:#4b5769;font-size:11px;min-height:36px;padding:6px 10px}
+.termfooter button:hover{border-color:#a9baff}
+.termfooter small{color:#a3adbe;font-size:10px}
+.explanation{padding:4px 0;display:flex;flex-direction:column;gap:16px}
+.explanation .plain{font:22px/1.3 var(--serif);color:var(--ink)}
+.explanation p{font-size:13px;color:var(--muted)}
+.example{padding:14px 0;border-top:1px solid var(--line)}
+.example strong{display:block;font-size:12px;margin-bottom:5px}.example span{font-size:13px;color:var(--muted)}
+.scenario{display:flex;flex-wrap:wrap;gap:6px}
+.scenario button{font-size:11px;min-height:36px;padding:7px 10px}
+.scenario button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:24px}
+.step{text-align:left;border:0;border-radius:0;border-top:2px solid var(--line);padding:12px 8px 12px 0;min-height:65px}
+.step[aria-current="step"]{border-color:var(--accent);color:var(--accent)}
+.step small{display:block;font:10px var(--mono);color:var(--muted);margin-bottom:3px}.step span{font-size:12px}
+.shared{margin-top:24px;padding:16px 0;border-top:1px solid var(--line);display:flex;gap:16px;align-items:baseline}
+.shared .eyebrow{flex:none}.shared p{font-size:12px;color:var(--muted)}
+
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:56px;padding-top:32px;margin-top:48px;border-top:1px solid var(--line)}
+.split h2{margin-top:8px}
+.split .lead{margin-top:14px;font-size:14px;color:var(--muted);max-width:380px}
+.checks{margin:0;padding:0;list-style:none}
+.check{display:grid;grid-template-columns:10px 1fr auto;gap:12px;align-items:start;padding:14px 0;border-top:1px solid var(--line)}
+.check:last-child{border-bottom:1px solid var(--line)}
+.check i{width:6px;height:6px;background:var(--ok);margin-top:8px}.check.note i{background:var(--warn)}
+.check strong{font-size:14px;font-weight:600;display:block}.check span.d{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.check .state{font:10px/2 var(--mono);text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.evidence{font-size:12px;color:var(--muted);margin-top:14px}
+.getlist{margin:0;padding:0;list-style:none;counter-reset:g}
+.get{counter-increment:g;display:grid;grid-template-columns:32px minmax(0,1fr);gap:4px 12px;padding:16px 0;border-top:1px solid var(--line)}
+.get:last-child{border-bottom:1px solid var(--line)}
+.get::before{content:"0" counter(g);font:12px/1.8 var(--mono);color:var(--muted);grid-row:span 3}
+.get strong{font-size:14px;font-weight:600}
+.get p{font-size:13px;color:var(--muted)}
+.cmd{display:flex;align-items:stretch;margin-top:8px;background:var(--term);color:var(--termtext);border-radius:5px;overflow:hidden}
+.cmd pre{flex:1;min-width:0;font:12px/1.7 var(--mono);padding:10px 14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmd button{flex:none;min-height:0;border:0;border-left:1px solid #303845;border-radius:0;color:#e5eafa;font-size:11px;padding:6px 12px}
+.cmd button:hover{background:#202630}
+.reqs{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:20px;font:12px/1.6 var(--mono);color:var(--muted)}.reqs b{color:var(--ink);font-weight:600}
+.limits{margin:0;padding:0;list-style:none}
+.limits li{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:20px;padding:14px 0;border-top:1px solid var(--line)}
+.limits li:last-child{border-bottom:1px solid var(--line)}
+.limits strong{font-size:14px;font-weight:600}.limits span{font-size:13px;color:var(--muted)}
+
+footer{padding-top:32px;margin-top:56px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;color:var(--muted);font:11px/1.7 var(--mono)}
+footer nav{display:flex;flex-wrap:wrap;gap:6px 20px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:12px 20px;border-radius:4px;font-size:13px;box-shadow:0 4px 16px #0002;z-index:10;max-width:calc(100vw - 32px)}.toast:empty{display:none}
+
+@media (max-width:1100px){
+.shell{padding:0 24px 32px}.top{padding:16px 24px}.stage{grid-template-columns:minmax(0,1fr)}
+.explanation{display:grid;grid-template-columns:1fr 1fr;gap:14px 24px}.explanation .plain{grid-column:1/-1}.explanation>.muted{grid-column:1/-1}
+.termtext{min-height:235px}.workspace{grid-template-columns:200px minmax(0,1fr);gap:24px}.hero{gap:32px}.intro p{font-size:15px}
+.split{gap:32px}.topnav{display:none}}
+@media (max-width:700px){
+.top{padding:12px 16px;gap:12px}.wordmark{font-size:28px}.topsub{display:none}.topright .btn{display:none}
+.shell{padding:0 16px 28px}.hero{grid-template-columns:1fr;gap:24px;padding:32px 0 24px}
+h1{font-size:52px;letter-spacing:-2px}.intro{max-width:100%}.intro p{font-size:15px}.intro .explain{font-size:11px}
+.actions{margin-top:20px}.actions .btn{flex:1 1 100%}
+.strip{flex-wrap:wrap;gap:4px 12px}.strip span{margin-left:0;width:100%}
+.section{padding-top:36px}.sectionhead{flex-wrap:wrap;gap:6px}.sectionhead span{margin-left:0}
+.workspace{grid-template-columns:minmax(0,1fr);gap:24px}.rail{border:0;padding:0}.rail .eyebrow{margin-bottom:12px}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tool{border:1px solid var(--line);min-height:76px;padding:12px 8px;gap:6px;grid-template-columns:24px 1fr}
+.tool small{font-size:9px}.tool strong{font-size:13px}.railnote{display:none}
+.productheading{gap:8px}.productheading h2{font-size:28px}.productheading p{font-size:13px}.tag{font-size:9px;padding:4px}
+.termtext{padding:16px;font-size:11px;min-height:300px}.termfooter{flex-wrap:wrap;gap:8px}.termfooter small{flex:1 1 100%}
+.explanation{display:flex;gap:12px}.explanation .plain{font-size:22px}.example{padding:12px 0}
+.steps{margin-top:16px}.step span{font-size:11px}.step small{font-size:9px}
+.shared{display:block}.shared p{margin-top:8px}
+.split{grid-template-columns:minmax(0,1fr);gap:24px;margin-top:36px}
+.check{grid-template-columns:10px minmax(0,1fr)}.check .state{grid-column:2}
+.limits li{grid-template-columns:minmax(0,1fr);gap:4px}
+footer{flex-direction:column;gap:12px}
+h2{font-size:28px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<a class="skip" href="#tools">Skip to the tools</a>
+<header class="top" id="top"><a href="#top" class="wordmark">hartii labs</a><span class="topsub eyebrow">Operator tools</span>
+<nav class="topnav" aria-label="Page sections"><a href="#tools">Tools</a><a href="#today">What exists today</a><a href="#get">Get it</a><a href="#limits">Limits</a></nav>
+<div class="topright"><a class="btn" href="https://github.com/IboTheSecond/hartii-operator-tools">GitHub</a><button id="theme" type="button" aria-label="Switch color theme">Dark view</button></div></header>
+<main class="shell">
+<section class="hero"><div><p class="eyebrow">Quai developer tools · open source</p><h1>Serious tools.<br><em>Clear operations.</em></h1></div>
+<div class="intro"><p>Four small tools for teams building an app on Quai Network. Review a transaction before it is sent, check a deployed contract, watch an indexer, replay a failed call.</p>
+<p class="explain">A CLI is a tool you run by typing a command.<br>The examples below are samples. They do not run anything.</p>
+<div class="actions"><a class="btn primary" href="https://github.com/IboTheSecond/hartii-operator-tools">Get it on GitHub</a><a class="btn" href="#tools">See what each tool does</a></div></div></section>
+<div class="strip"><strong><i class="dot"></i>Beta 0.1.0-beta.1 · unaudited · MIT licence</strong><span>NODE 22.14+ · WINDOWS · LINUX</span></div>
+
+<section class="section" id="tools" aria-labelledby="tools-h">
+<div class="sectionhead"><h2 id="tools-h">Four tools, one core.</h2></div>
+<div class="workspace">
+<aside class="rail"><p class="eyebrow">01 / Choose a tool</p><div class="tabs" role="tablist" aria-label="Operator tools">
+<button class="tool" id="tab-tx" type="button" role="tab" aria-selected="true" aria-controls="product" data-tool="tx"><span class="num">01</span><span><strong>Transactions</strong><small>quai-tx</small></span></button>
+<button class="tool" id="tab-release" type="button" role="tab" aria-selected="false" aria-controls="product" data-tool="release" tabindex="-1"><span class="num">02</span><span><strong>Releases</strong><small>quai-release</small></span></button>
+<button class="tool" id="tab-watch" type="button" role="tab" aria-selected="false" aria-controls="product" data-tool="watch" tabindex="-1"><span class="num">03</span><span><strong>Monitoring</strong><small>quai-watch</small></span></button>
+<button class="tool" id="tab-replay" type="button" role="tab" aria-selected="false" aria-controls="product" data-tool="replay" tabindex="-1"><span class="num">04</span><span><strong>Replay</strong><small>quai-replay</small></span></button>
+</div><p class="railnote">Each tool runs once, prints JSON, and exits. None of them holds a key.</p></aside>
+<div id="product" role="tabpanel" aria-labelledby="tab-tx">
+<div class="productheading"><div><h2 id="product-title"></h2><p id="product-desc"></p></div><span class="tag" id="product-tag"></span></div>
+<div class="stage"><div class="terminal"><div class="termbar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="term-title">quai-tx</span><span class="termbadge">MOCKUP · SAMPLE DATA</span></div>
+<div class="termtext" id="termtext" aria-live="polite"></div>
+<div class="termfooter"><button id="next-step" type="button">Next step →</button><button id="copy-command" type="button">Copy command</button><small>No wallet connected. Nothing is sent.</small></div></div>
+<div class="explanation"><p class="eyebrow">02 / What this does</p><p class="plain" id="plain"></p><p class="muted" id="step-detail"></p>
+<div class="example"><strong>Who would use it?</strong><span id="who"></span></div>
+<div class="example"><strong>What it does not do</strong><span id="limit"></span></div>
+<div><p class="eyebrow" style="margin-bottom:8px">Try a scenario</p><div class="scenario" id="scenarios"></div></div></div></div>
+<div class="steps" id="steps" aria-label="Example workflow steps"></div>
+<div class="shared"><span class="eyebrow">One shared core</span><p>Address validation, RPC boundaries, local evidence and transaction review live in one package. All four tools use it.</p></div>
+</div></div>
+</section>
+
+<section class="split" id="today" aria-labelledby="today-h">
+<div><p class="eyebrow">What exists today</p><h2 id="today-h">Recorded checks, not a launch.</h2><p class="lead">These are facts from tests and CI. Last checked 2026-11-12.</p></div>
+<div><ul class="checks">
+<li class="check"><i></i><div><strong>Tests</strong><span class="d">35 tests pass locally. CI runs them on Windows and Linux with Node 22 and 24.</span></div><span class="state">pass</span></li>
+<li class="check"><i></i><div><strong>CLI help and strict flags</strong><span class="d">8 tests. Every tool refuses an option it does not know.</span></div><span class="state">pass</span></li>
+<li class="check"><i></i><div><strong>Transaction safety engine</strong><span class="d">12 tests, including single-use submission and receipt reconciliation.</span></div><span class="state">pass</span></li>
+<li class="check"><i></i><div><strong>Four-tool protocol check</strong><span class="d">7 steps against a local test server. No live chain.</span></div><span class="state">pass</span></li>
+<li class="check"><i></i><div><strong>Reproducible packages</strong><span class="d">5 packages, byte-identical across Windows and Linux on Node 22 and 24.</span></div><span class="state">pass</span></li>
+<li class="check note"><i></i><div><strong>Outside use</strong><span class="d">Not yet used by an outside team. Treat it as beta.</span></div><span class="state">none yet</span></li>
+</ul></div>
+</section>
+
+<section class="split" id="get" aria-labelledby="get-h">
+<div><p class="eyebrow">Get it</p><h2 id="get-h">From GitHub, in four steps.</h2><p class="lead">It is not on npm. You build it from the repository.</p>
+<div class="reqs"><span><b>Node</b> 22.14 or newer</span><span><b>OS</b> Windows or Linux</span><span><b>Git</b> and npm</span></div></div>
+<div><ol class="getlist">
+<li class="get"><strong>Clone the repository</strong><p>Source is open under the MIT licence.</p><div class="cmd"><pre>git clone https://github.com/IboTheSecond/hartii-operator-tools.git
+cd hartii-operator-tools</pre><button type="button" data-copy="git clone https://github.com/IboTheSecond/hartii-operator-tools.git&#10;cd hartii-operator-tools">Copy</button></div></li>
+<li class="get"><strong>Install dependencies</strong><p>Scripts are not run during install.</p><div class="cmd"><pre>npm ci --ignore-scripts</pre><button type="button" data-copy="npm ci --ignore-scripts">Copy</button></div></li>
+<li class="get"><strong>Run a tool</strong><p>Prints the commands and options. Use release, watch or replay in place of tx for the others.</p><div class="cmd"><pre>node packages/tx/bin/cli.mjs --help</pre><button type="button" data-copy="node packages/tx/bin/cli.mjs --help">Copy</button></div></li>
+<li class="get"><strong>Optional: build the packages</strong><p>Builds five tarballs twice, compares their bytes, and writes SHA256SUMS to artifacts/packages. Install the core and the tools you want from those tarballs together.</p><div class="cmd"><pre>npm test
+npm run pack:verify</pre><button type="button" data-copy="npm test&#10;npm run pack:verify">Copy</button></div></li>
+</ol></div>
+</section>
+
+<section class="split" id="limits" aria-labelledby="limits-h">
+<div><p class="eyebrow">Safety and limits</p><h2 id="limits-h">What it checks, and what it does not.</h2><p class="lead">The tools check and refuse. They cannot promise an outcome on a live network.</p>
+<div class="actions"><a class="btn" href="https://github.com/IboTheSecond/hartii-operator-tools/blob/main/SECURITY.md">Report a security issue</a></div></div>
+<div><ul class="limits">
+<li><strong>Your keys stay yours</strong><span>It never holds a key and has no signing-key option. You sign with your own signer, outside these tools.</span></li>
+<li><strong>Chains and zone</strong><span>Mainnet (chain 9) and chain 15000, on Cyprus-1 only. Other zones, Qi and zero destinations are refused.</span></li>
+<li><strong>The node is trusted</strong><span>The RPC endpoint you choose is a trust dependency. Chain ID and identity checks do not prove a node is honest.</span></li>
+<li><strong>A failed broadcast is unknown</strong><span>The same signed bytes may already be in the network. It is never retried automatically. Reconcile with a receipt before sending again.</span></li>
+<li><strong>Beta and unaudited</strong><span>No outside audit. The upstream quais SDK is pinned to a pre-release, 1.0.0-alpha.54.</span></li>
+<li><strong>Mocks are not proof</strong><span>Tests use local fixtures. A passing test is not evidence about a live network.</span></li>
+<li><strong>Local state matters</strong><span>Reservations live in a private folder on your machine. Losing it loses that knowledge. One process should own it.</span></li>
+</ul></div>
+</section>
+
+<footer><span>Hartii Labs · MIT licence<br>Beta software. Samples on this page are not live output.</span>
+<nav aria-label="Links"><a href="https://github.com/IboTheSecond/hartii-operator-tools">GitHub</a><a href="https://hartiilabs.com/operator-tools">About these tools on Hartii Labs</a><a href="https://github.com/dominant-strategies/quais.js">Quai SDK source</a><a href="https://github.com/dominant-strategies/quai-docs">Quai protocol docs</a></nav></footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+const tools={
+tx:{title:'Review before you send.',desc:'Inspect and simulate a transaction, prepare it exactly, check an external signature, submit once, then reconcile the receipt.',tag:'START HERE',plain:'Make the important details visible before a transaction leaves your wallet.',who:'A Quai app team that sends operational transactions, or is chasing a failed one.',limit:'It does not hold keys or sign for you. It never retries a broadcast on its own.',scenarios:['Normal flow','Terms changed','Connection lost'],steps:[
+{name:'Prepare',command:'quai-tx prepare --intent transfer.json --json',detail:'The intent file says who sends, who receives, the exact amount and the maximum fee. The tool checks the selected chain and account type.',lines:[['dim','Example · transfer of 1 QUAI'],['','Chain          9 / Cyprus-1'],['','Value          1.000000 QUAI'],['','Maximum fee    Set in your intent file'],['success','✓ Input validated'],['dim','No signature requested. No broadcast.']]},
+{name:'Simulate',command:'quai-tx prepare --intent transfer.json --json',detail:'The same command runs a read-only preflight: current call, gas estimate, balance and pending nonce. It is a check, not a promise about future chain state.',lines:[['dim','Read-only preflight'],['success','✓ Selected chain matches'],['success','✓ Current call succeeds'],['success','✓ Balance covers value + fee ceiling'],['','Gas limit      Estimate × 1.3'],['dim','The chain can change after this check.']]},
+{name:'Review & sign',command:'quai-tx status --review <review-id> --json',detail:'A short-lived review binds every transaction field. Sign the unsigned transaction with your existing wallet or signing workflow. The tool never takes your private key.',lines:[['dim','Review prepared transaction'],['','Sender         Your checksummed account'],['','Destination    Your checksummed recipient'],['','Value / data   Bound to this review'],['','Approval       One use · expires in 5 minutes'],['warning','External signing step required'],['dim','Changing the signed terms invalidates the review.']]},
+{name:'Send & reconcile',command:'quai-tx send --review <review-id> --approval-file <approval-file> --signed-file <signed-file> --confirm --json',detail:'After explicit confirmation, the tool checks the signed bytes against the review and rechecks current conditions. An uncertain network response stays unknown until a receipt proves the result.',lines:[['dim','Submit the exact reviewed signature'],['success','✓ Signature matches reviewed terms'],['success','✓ Approval consumed once'],['','Broadcast      Submitted to selected node'],['warning','Receipt        Still required for final success'],['dim','Then run: quai-tx receipt --review <review-id> --json']]}]},
+release:{title:'Know what you released.',desc:'Fingerprint a compiled artifact and compare it with the runtime bytes deployed at an address.',tag:'RELEASE EVIDENCE',plain:'Check that the code at the deployed address is the code you meant to ship.',who:'Contract developers, and whoever signs off a release.',limit:'It does not deploy, publish source to an explorer, inspect a proxy or audit the contract.',scenarios:['Code matches','Code mismatch','Receipt missing'],steps:[
+{name:'Artifact',command:'quai-release artifact --artifact Contract.json --json',detail:'Read a local compiled artifact and calculate stable fingerprints. Unresolved library links or immutable references need a fully resolved runtime artifact.',lines:[['dim','Fingerprint a compiled artifact'],['','Contract       Your compiled contract'],['','Runtime        Parsed from deployedBytecode'],['','Fingerprint    SHA-256 of the artifact and of the runtime bytes'],['dim','This does not compile or deploy anything.']]},
+{name:'Manifest',command:'quai-release verify --manifest release.json --json',detail:'Your release manifest ties the artifact to a chain, an address and the deployment transaction. This keeps the evidence reviewable.',lines:[['dim','Validate the release manifest'],['','Chain          9'],['','Address        Checksummed contract address'],['','Deployment tx  From your release process'],['','Artifact       Path relative to the manifest'],['success','✓ Required release inputs present']]},
+{name:'Verify code',command:'quai-release verify --manifest release.json --json',detail:'Read the deployment receipt and the on-chain runtime code. A release only passes when identity, success status and exact bytes all match.',lines:[['dim','Read receipt and runtime code'],['success','✓ Deployment receipt status is 1'],['success','✓ Contract address matches manifest'],['success','✓ Runtime bytes match artifact'],['dim','Compared at the deployment block. May need archive access.']]},
+{name:'Record',command:'quai-release verify --manifest release.json --out receipt.json --json',detail:'Save a structured receipt with the fingerprints and the observed chain evidence. This is bytecode verification, not explorer source verification or a security audit.',lines:[['dim','Save the release receipt'],['','Evidence       Address + tx + code fingerprint'],['','Output         receipt.json'],['success','✓ Reviewable release record'],['dim','Explorer source submission is a separate step.']]}]},
+watch:{title:'Notice a stalled indexer.',desc:'Read the health endpoint of the existing Quai Worker/D1 indexer and check heartbeat age, failed runs and cursor lag.',tag:'INDEXER HEALTH',plain:'A scheduled job is only useful if you can tell it is still keeping up.',who:'A team whose app depends on indexed events, balances or market activity.',limit:'It runs once. It installs no scheduler and sends no alerts. Use your own scheduler.',scenarios:['Healthy','Heartbeat stale','Cursor behind'],steps:[
+{name:'Check',command:'quai-watch check --url https://your-indexer.example/health --max-age-secs 600 --max-lag 100 --json',detail:'Use the existing indexer health response. The tool reads it and changes nothing: no Worker, no database, no migration.',lines:[['dim','One-shot health check'],['','Request        GET your health URL'],['','Integration    Existing Worker + D1 indexer'],['','Thresholds     Age 600 s · lag 100']]},
+{name:'Evaluate',command:'quai-watch check --url https://your-indexer.example/health --json',detail:'It checks whether the last run succeeded, whether the heartbeat is fresh and whether the cursor lags the head. Missing data is never treated as healthy.',lines:[['dim','Evaluate the response'],['','Heartbeat      Fresh · age recomputed from its timestamp'],['','Last run       Successful'],['','Cursor lag     Within configured threshold'],['success','✓ Healthy in this example']]},
+{name:'Offline report',command:'quai-watch report --input health.json --json',detail:'Run the same checks on a saved health response, with no network call. The reported head is the indexer\'s last observation, not an independent chain head.',lines:[['dim','Evaluate a saved file'],['','Input          health.json'],['','Network        None'],['success','✓ Same checks, same reasons']]},
+{name:'Act',command:'quai-watch check --url https://your-indexer.example/health --max-lag 100 --json',detail:'Machine-readable output and an exit code let your own CI or scheduler decide when to tell someone.',lines:[['dim','Use the exit code in your scheduler'],['','Healthy        Exit 0'],['','Degraded       Exit 2 + reasons'],['warning','Unavailable    Exit 1; do not call it healthy'],['dim','Nothing recurring is started by the tool.']]}]},
+replay:{title:'Make a failure reproducible.',desc:'Capture a mined transaction as evidence, then repeat its call read-only at parent-block state.',tag:'DEBUGGING',plain:'Hand another developer something better than “the transaction failed.”',who:'A developer debugging a production report or preparing a reproducible issue.',limit:'It is not an exact in-block replay. It needs an archive-capable node, and refuses contract creation, external transactions and Qi.',scenarios:['Call succeeds','Call reverts','Archive unavailable'],steps:[
+{name:'Capture',command:'quai-replay capture --hash <transaction-hash> --out capture.json --json',detail:'Capture the transaction, its receipt and the mined block. Only public transaction evidence is recorded.',lines:[['dim','Capture mined transaction evidence'],['','Input          Existing transaction hash'],['','Capture        Transaction + receipt + block'],['','Output         capture.json'],['dim','No key, no signature request, no broadcast.']]},
+{name:'Pin state',command:'quai-replay run --input capture.json --json',detail:'Use the parent block state for a historical call. This needs an archive-capable node and does not rebuild the state inside the mined block.',lines:[['dim','Choose historical state'],['','State          Parent of the mined block'],['','Identity       Captured block hash is checked'],['warning','Approximation  Not an exact in-block replay'],['dim','Same-block ordering can change the outcome.']]},
+{name:'Re-run call',command:'quai-replay run --input capture.json --json',detail:'Run quai_call with the original call fields at the chosen historical block. A revert is useful debugging evidence, not a new failure.',lines:[['dim','Execute the historical read-only call'],['','Request        quai_call'],['','Fields         Sender, recipient, value, data'],['success','✓ Call returned in this example'],['dim','Nothing was written to the chain.']]},
+{name:'Share evidence',command:'quai-replay run --input capture.json --out replay.json --json',detail:'Save the result with its limits. Public calldata can still hold application data, so review a capture before sharing it.',lines:[['dim','Save the debugging evidence'],['','Original       Mined receipt outcome'],['','Replay         Read-only call outcome'],['','Caveat         Parent-block approximation'],['success','✓ A repeatable investigation record']]}]}
+};
+const keys=['tx','release','watch','replay'];
+let selected='tx',step=0,scenario=0,toastTimer;
+const $=id=>document.getElementById(id);
+function toast(text){$('toast').textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{$('toast').textContent='';},2600);}
+function render(){
+const t=tools[selected];
+document.querySelectorAll('[data-tool]').forEach(b=>{const on=b.dataset.tool===selected;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});
+$('product').setAttribute('aria-labelledby','tab-'+selected);
+$('product-title').textContent=t.title;$('product-desc').textContent=t.desc;$('product-tag').textContent=t.tag;
+$('plain').textContent=t.plain;$('who').textContent=t.who;$('limit').textContent=t.limit;
+$('term-title').textContent='quai-'+selected;$('step-detail').textContent=t.steps[step].detail;
+$('scenarios').replaceChildren(...t.scenarios.map((name,i)=>{const b=document.createElement('button');b.type='button';b.textContent=name;b.setAttribute('aria-pressed',String(i===scenario));b.onclick=()=>{scenario=i;render();};return b;}));
+$('steps').replaceChildren(...t.steps.map((s,i)=>{const b=document.createElement('button');b.type='button';b.className='step';if(i===step)b.setAttribute('aria-current','step');const n=document.createElement('small');n.textContent='0'+(i+1);const label=document.createElement('span');label.textContent=s.name;b.append(n,label);b.onclick=()=>{step=i;render();};return b;}));
+const command=t.steps[step].command;
+let lines=[['prompt','$ '+command],...t.steps[step].lines];
+if(scenario>0){
+const specific={tx:[['warning','REFUSED · Signed transaction terms changed.'],['warning','UNKNOWN · Node response was lost after submission.']],release:[['warning','REFUSED · Runtime bytecode differs from artifact.'],['warning','UNVERIFIED · No final receipt available.']],watch:[['warning','DEGRADED · Last heartbeat is too old.'],['warning','DEGRADED · Cursor exceeds the lag threshold.']],replay:[['warning','REVERT · Historical call returned revert data.'],['warning','UNAVAILABLE · Node cannot serve historical state.']]};
+lines=[['prompt','$ '+command],['dim','Illustrative failure state'],['',''],specific[selected][scenario-1],['',''],['dim',selected==='tx'&&scenario===2?'Preserve the hash. Reconcile the receipt. Do not retry blindly.':'Report the reason. Do not claim success.']];}
+$('termtext').replaceChildren(...lines.map(([cls,text])=>{const span=document.createElement('span');span.className=cls;span.textContent=text+'\n';return span;}));
+$('next-step').textContent=step===t.steps.length-1?'Restart example ↺':'Next step →';
+}
+function choose(k){selected=k;step=0;scenario=0;render();}
+document.querySelectorAll('[data-tool]').forEach(b=>{b.onclick=()=>choose(b.dataset.tool);b.onkeydown=e=>{if(['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();let i=keys.indexOf(selected);i=e.key==='Home'?0:e.key==='End'?3:(i+(['ArrowLeft','ArrowUp'].includes(e.key)?3:1))%4;choose(keys[i]);$('tab-'+keys[i]).focus();}};});
+$('next-step').onclick=()=>{step=(step+1)%tools[selected].steps.length;render();};
+function selectText(el){const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);}
+async function copy(text,source){
+try{await navigator.clipboard.writeText(text);toast('Copied');return;}catch(e){}
+try{const box=document.createElement('textarea');box.value=text;box.setAttribute('readonly','');box.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.append(box);box.select();const ok=document.execCommand('copy');box.remove();if(ok){toast('Copied');return;}}catch(e){}
+if(source)selectText(source);
+toast('Copy is blocked here. The text is selected: press Ctrl+C.');}
+$('copy-command').onclick=()=>copy(tools[selected].steps[step].command,$('termtext').firstChild);
+document.querySelectorAll('[data-copy]').forEach(b=>{b.onclick=()=>copy(b.dataset.copy,b.previousElementSibling);});
+function effectiveTheme(){const t=document.documentElement.getAttribute('data-theme');return t||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}
+function themeLabel(){$('theme').textContent=effectiveTheme()==='dark'?'Light view':'Dark view';}
+$('theme').onclick=()=>{const next=effectiveTheme()==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);try{localStorage.setItem('hartii-ops-theme',next);}catch(e){}themeLabel();};
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',themeLabel);}catch(e){}
+themeLabel();render();
+</script>
+</body>
+</html>

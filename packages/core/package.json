@@ -1,0 +1,10 @@
+{
+  "name": "@hartii/ops-core",
+  "version": "0.1.0-beta.1",
+  "type": "module",
+  "exports": "./src/index.mjs",
+  "files": ["src", "README.md", "LICENSE"],
+  "engines": { "node": ">=22.14" },
+  "dependencies": { "quais": "1.0.0-alpha.54" },
+  "license": "MIT"
+}
